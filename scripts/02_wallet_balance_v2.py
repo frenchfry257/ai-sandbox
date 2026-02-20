@@ -1,4 +1,4 @@
-import os
+ERIimport os
 import requests
 import json
 
@@ -10,7 +10,7 @@ def main():
         return 1
 
     # 🔥 Replace this with any public Ethereum address you want to inspect
-    address = "0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe"
+    address = "ETHERIUM_ADDRESS_HERE"
 
     url = "https://api.etherscan.io/v2/api"
 
