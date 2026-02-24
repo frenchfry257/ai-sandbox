@@ -1,3 +1,10 @@
+# Keep sandbox clean — do not embed other repos
+morningstar-alliance/
+octavian-vscode-assistant/
+
+# Also ignore any nested git metadata if it ever appears
+**/.git
+
 # Logs
 logs
 *.log
