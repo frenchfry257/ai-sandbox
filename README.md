@@ -14,7 +14,6 @@ Activate virtual environment:
 venv\Scripts\Activate
 
 Set API key (PowerShell):
-
 $env:ETHERSCAN_API_KEY="YOUR_KEY"
 
 ## Run Scripts

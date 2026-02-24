@@ -3,14 +3,14 @@ import requests
 import json
 
 def main():
-    api_key = os.getenv("ETHERSCAN_API_KEY")
+    api_key = os.getenv("ETHERIUM_WALLET_KEY")
     if not api_key:
         print("Missing ETHERSCAN_API_KEY environment variable.")
         print('$env:ETHERSCAN_API_KEY="YOUR_KEY_HERE"')
         return 1
 
     # 🔥 Replace this with any public Ethereum address you want to inspect
-    address = "0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe"
+    address = "0x6C08C077dBd193022cBaD43f4b71F7068740B86C"
 
     url = "https://api.etherscan.io/v2/api"
 
