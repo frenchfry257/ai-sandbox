@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="author" content="The Morningstar Alliance">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Morningstar Alliance is a Pennsylvania nonprofit based in Philadelphia exploring structured collaboration between human intelligence and artificial systems.">
+
+  <meta name="geo.region" content="US-PA">
+  <meta name="geo.placename" content="Philadelphia">
+  <meta name="geo.position" content="39.9526;-75.1652">
+  <meta name="ICBM" content="39.9526, -75.1652">
+
+  <meta property="og:title" content="The Morningstar Alliance">
+  <meta property="og:description" content="A Pennsylvania nonprofit based in Philadelphia focused on responsible human–AI collaboration.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://themorningstaralliance.org"><title>Morningstar Alliance</title>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NGO",
+  "name": "The Morningstar Alliance",
+  "alternateName": "Morningstar Alliance",
+  "url": "https://themorningstaralliance.org/",
+  "description": "A Pennsylvania nonprofit based in Philadelphia exploring structured collaboration between human intelligence and artificial systems.",
+  "foundingLocation": {
+    "@type": "Place",
+    "name": "Philadelphia, Pennsylvania, United States",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Philadelphia",
+      "addressRegion": "PA",
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 39.9526,
+      "longitude": -75.1652
+    }
+  },
+  "areaServed": [
+    {
+      "@type": "AdministrativeArea",
+      "name": "Pennsylvania"
+    },
+    {
+      "@type": "City",
+      "name": "Philadelphia"
+    }
+  ]
+}
+
+<section id="neo-watch" style="margin: 2rem 0;">
+  <h2>☄️ Morningstar NEO Watch</h2>
+  <p style="opacity:.85; max-width: 70ch;">
+    Live near-Earth object data from NASA. We estimate kinetic energy using object size + relative velocity
+    with an assumed density. This is a physics demo, not a damage forecast.
+  </p>
+
+  <div id="neo-status" style="margin: 1rem 0; opacity:.9;">Loading NEO feed…</div>
+  <div id="neo-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;"></div>
+
+  <details style="margin-top: 1rem; opacity:.9;">
+    <summary>Assumptions & math</summary>
+    <ul>
+      <li>Density assumed: 3000 kg/m³ (rocky asteroid)</li>
+      <li>Mass from volume of a sphere using diameter estimate</li>
+      <li>Kinetic energy: E = ½ m v²</li>
+      <li>1 megaton TNT = 4.184×10¹⁵ J</li>
+      <li>Real outcomes depend on angle, material strength, fragmentation, and atmosphere.</li>
+    </ul>
+  </details>
+</section>
+
+</script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 80px auto;
+      padding: 0 24px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h2 {
+      margin-top: 3rem;
+      font-weight: 500;
+      color: #8b949e;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: #8b949e;
+    }
+
+    .divider {
+      margin: 2rem 0;
+      height: 1px;
+      background: #30363d;
+    }
+  </style>
+</head>
+
+<script>
+(() => {
+  // --- CONFIG ---
+  const NASA_API_KEY = "QXxQP7RRC6jTfQmPCkEwLmUFeVKk5jirZoMyQJyH"; // Replace with your own key later from https://api.nasa.gov
+  const DENSITY_KG_M3 = 3000; // rocky asteroid approx
+  const TOP_N = 12; // show biggest-energy approaches
+
+  const statusEl = document.getElementById("neo-status");
+  const cardsEl  = document.getElementById("neo-cards");
+
+  const J_PER_MEGATON_TNT = 4.184e15;
+  const AU_TO_KM = 149597870.7;
+  const KM_PER_LD = 384400;
+
+  const fmt = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+
+  function yyyyMmDd(d) {
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function kineticEnergyJ(diameter_m, v_m_s, density = DENSITY_KG_M3) {
+    const r = diameter_m / 2;
+    const volume = (4/3) * Math.PI * r*r*r;
+    const mass = volume * density;
+    return 0.5 * mass * v_m_s * v_m_s;
+  }
+
+  function cardHtml(x) {
+    const haz = x.is_potentially_hazardous_asteroid;
+    const border = haz ? "2px solid rgba(255,80,80,.7)" : "1px solid rgba(255,255,255,.15)";
+    const bg = "rgba(255,255,255,.04)";
+
+    return `
+      <div style="border:${border}; background:${bg}; padding:12px; border-radius:14px;">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+          <div style="font-weight:700; line-height:1.2;">${x.name}</div>
+          <div style="font-size:.9rem; opacity:.85;">${haz ? "⚠️ Potentially hazardous" : "✅ Not flagged hazardous"}</div>
+        </div>
+
+        <div style="margin-top:8px; font-size:.95rem; opacity:.9;">
+          <div><b>Date:</b> ${x.close_approach_date}</div>
+          <div><b>Diameter:</b> ${fmt.format(x.diam_min_m)}–${fmt.format(x.diam_max_m)} m</div>
+          <div><b>Velocity:</b> ${fmt.format(x.v_km_s)} km/s</div>
+          <div><b>Miss distance:</b> ${fmt.format(x.miss_km)} km (${fmt.format(x.miss_ld)} LD)</div>
+          <div><b>Energy (est):</b> ${fmt.format(x.energy_min_mt)}–${fmt.format(x.energy_max_mt)} Mt TNT</div>
+        </div>
+
+        <div style="margin-top:10px; font-size:.9rem; opacity:.8;">
+          <a href="${x.nasa_jpl_url}" target="_blank" rel="noreferrer">NASA JPL page</a>
+        </div>
+      </div>
+    `;
+  }
+
+  async function run() {
+    try {
+      // NeoWs feed supports a date range up to 7 days.
+      const start = new Date();
+      const end = new Date();
+      end.setDate(start.getDate() + 7);
+
+      const url =
+        `https://api.nasa.gov/neo/rest/v1/feed?start_date=${yyyyMmDd(start)}&end_date=${yyyyMmDd(end)}&api_key=${encodeURIComponent(NASA_API_KEY)}`;
+
+      statusEl.textContent = "Fetching NASA NEO feed…";
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`NASA API error: ${res.status} ${res.statusText}`);
+      const data = await res.json();
+
+      const out = [];
+
+      // Flatten date buckets
+      const dates = Object.keys(data.near_earth_objects || {});
+      for (const date of dates) {
+        for (const neo of data.near_earth_objects[date]) {
+          // pick the closest approach record to Earth for that date (usually first)
+          const ca = (neo.close_approach_data || []).find(x => x.orbiting_body === "Earth") || neo.close_approach_data?.[0];
+          if (!ca) continue;
+
+          const v_km_s = Number(ca.relative_velocity?.kilometers_per_second ?? NaN);
+          const v_m_s = v_km_s * 1000;
+
+          const miss_km = Number(ca.miss_distance?.kilometers ?? NaN);
+          // Some feeds return AU / lunar too, but we normalize:
+          const miss_au = Number(ca.miss_distance?.astronomical ?? NaN);
+          const miss_ld = Number(ca.miss_distance?.lunar ?? (isFinite(miss_km) ? miss_km / KM_PER_LD : (miss_au * AU_TO_KM) / KM_PER_LD));
+
+          const diam_min_m = Number(neo.estimated_diameter?.meters?.estimated_diameter_min ?? NaN);
+          const diam_max_m = Number(neo.estimated_diameter?.meters?.estimated_diameter_max ?? NaN);
+
+          if (![v_km_s, miss_km, diam_min_m, diam_max_m].every(Number.isFinite)) continue;
+
+          const E_min = kineticEnergyJ(diam_min_m, v_m_s);
+          const E_max = kineticEnergyJ(diam_max_m, v_m_s);
+
+          out.push({
+            name: neo.name,
+            close_approach_date: ca.close_approach_date,
+            is_potentially_hazardous_asteroid: !!neo.is_potentially_hazardous_asteroid,
+            nasa_jpl_url: neo.nasa_jpl_url || neo.links?.self || "#",
+            v_km_s,
+            miss_km,
+            miss_ld,
+            diam_min_m,
+            diam_max_m,
+            energy_min_mt: E_min / J_PER_MEGATON_TNT,
+            energy_max_mt: E_max / J_PER_MEGATON_TNT,
+            energy_sort: E_max // sort by max energy
+          });
+        }
+      }
+
+      // Sort: biggest-energy first
+      out.sort((a, b) => b.energy_sort - a.energy_sort);
+
+      const shown = out.slice(0, TOP_N);
+      if (!shown.length) {
+        statusEl.textContent = "No NEO items parsed from the feed (unexpected).";
+        return;
+      }
+
+      statusEl.textContent =
+        `Showing top ${shown.length} approaches in the next 7 days (ranked by estimated max kinetic energy).`;
+
+      cardsEl.innerHTML = shown.map(cardHtml).join("");
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = `NEO feed failed: ${err.message}`;
+    }
+  }
+
+  run();
+})();
+</script>
+
+<body>
+  <div class="container">
+    <h1>Morningstar Alliance</h1>
+    <p>
+      Exploring structured collaboration between human intelligence and artificial systems.
+    </p>
+
+    <div class="divider"></div>
+
+    <h2>Mission</h2>
+    <p>
+      We believe the future of artificial intelligence is not a contest nor a surrender. It is a collaboration built on responsibility, restraint, and human dignity.
+    </p>
+
+    <h2>Principles</h2>
+    <p>
+      Transparency. Stewardship. Alignment. Deliberate design over spectacle.
+    </p>
+
+    <h2>Position Papers</h2>
+    <p>
+      <a href="https://github.com/frenchfry257/morningstar-alliance/blob/main/POSITION-01-COLLABORATIVE-FUTURE.md">
+        Position Paper 01 — The Collaborative Future
+      </a>
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="footer">
+      Built in daylight. Documented in public.  
+      © Morningstar Alliance
+    </div>
+  </div>
+</body>
+</html>

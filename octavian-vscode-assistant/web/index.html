@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morningstar Control</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>Morningstar Control</h1>
+        <div class="status">
+          <span id="dot" class="dot offline"></span>
+          <span id="statusText">Disconnected</span>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Quick Test</h2>
+        <p class="muted">Ping your local API at <code id="baseUrlLabel"></code></p>
+
+        <div class="row">
+          <button id="pingBtn">Ping</button>
+          <button id="healthBtn">Health</button>
+        </div>
+
+        <pre id="out" class="out">// output...</pre>
+      </section>
+
+      <section class="card">
+        <h2>Send Message</h2>
+        <div class="row">
+          <input id="msg" placeholder="Type something..." />
+          <button id="sendBtn">Send</button>
+        </div>
+        <p class="muted">This expects POST /echo (we can adapt to your actual route).</p>
+      </section>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
